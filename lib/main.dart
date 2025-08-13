@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:testconcung/switch_animation/swich_animation.dart';
+import 'package:testconcung/screen/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,18 +12,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: SwichAnimationWidget(
-        defaultValue: false,
-        onChanged: (value) {},
-        width: 300,
-        height: 100,
-        spacing: 10,
-        duration: 3000,
-      ),
+      home: const HomeScreen(),
     );
   }
 }

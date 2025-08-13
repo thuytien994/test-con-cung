@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:testconcung/switch_animation/constanst/color.dart';
+import 'package:testconcung/switch_animation/constanst/image_asset.dart';
 
-import 'components/dot.dart';
+import 'widget/dot.dart';
 
 class SwichAnimationWidget extends StatefulWidget {
   const SwichAnimationWidget({
-    required this.onChanged,
+    this.onChanged,
     this.defaultValue,
     this.width,
     this.height,
     this.duration,
     this.radius,
     this.spacing,
+    this.waveCount,
+    this.waveSpacing,
     super.key,
   }) : assert(height != null && (height > 20), 'Height cannot be less than 20');
 
@@ -20,7 +24,9 @@ class SwichAnimationWidget extends StatefulWidget {
   final double? radius;
   final double? spacing;
   final bool? defaultValue;
-  final ValueChanged<bool> onChanged;
+  final ValueChanged<bool>? onChanged;
+  final int? waveCount;
+  final double? waveSpacing;
 
   @override
   State<SwichAnimationWidget> createState() => _SwichAnimationWidgetState();
@@ -36,6 +42,8 @@ class _SwichAnimationWidgetState extends State<SwichAnimationWidget>
   double radius = 200;
   double paddingSwich = 16;
   int duration = 2000;
+  int waveCount = 3;
+  double waveSpacing = 30;
 
   late Tween<Alignment> _tweenSunTween;
   late Tween<double> _tweenClouds;
@@ -54,6 +62,8 @@ class _SwichAnimationWidgetState extends State<SwichAnimationWidget>
     heightSwich = widget.height ?? heightSwich;
     paddingSwich = widget.spacing ?? paddingSwich;
     radius = widget.radius ?? radius;
+    waveCount = widget.waveCount ?? waveCount;
+    waveSpacing = widget.waveSpacing ?? waveSpacing;
 
     controller = AnimationController(
       duration: Duration(milliseconds: widget.duration ?? duration),
@@ -87,8 +97,8 @@ class _SwichAnimationWidgetState extends State<SwichAnimationWidget>
     _tweenClouds = Tween<double>(begin: 0, end: -heightSwich);
     _tweenMoon = Tween<double>(begin: 1.5, end: 0);
     _tweenSwitchColor = ColorTween(
-      begin: const Color(0xff2384BA),
-      end: const Color(0xFF2F2F2F),
+      begin: SwitchColor.sunBackgroundSwitch,
+      end: SwitchColor.moonBackgroundSwitch,
     );
     _tweenStars = Tween<double>(begin: -heightSwich, end: 0);
     if (_value) {
@@ -112,6 +122,12 @@ class _SwichAnimationWidgetState extends State<SwichAnimationWidget>
     if (widget.radius != oldWidget.radius) {
       radius = widget.radius ?? radius;
     }
+    if (widget.waveCount != oldWidget.waveCount) {
+      waveCount = widget.waveCount ?? waveCount;
+    }
+    if (widget.waveSpacing != oldWidget.waveSpacing) {
+      waveSpacing = widget.waveSpacing ?? waveSpacing;
+    }
     if (widget.duration != oldWidget.duration) {
       controller.duration = Duration(milliseconds: widget.duration ?? duration);
     }
@@ -127,7 +143,7 @@ class _SwichAnimationWidgetState extends State<SwichAnimationWidget>
         return;
       }
       _value = !_value;
-      widget.onChanged(_value);
+      widget.onChanged?.call(_value);
       if (_value) {
         controller.forward();
       } else {
@@ -146,59 +162,27 @@ class _SwichAnimationWidgetState extends State<SwichAnimationWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xffdddddd),
-      body: Container(
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 30,
-                  height: 30,
-                  color: Colors.red,
-                ),
-                ...List.generate(3, (i) {
-                  double index = i + 1;
-                  return Positioned.fill(
-                    top: -20 * index,
-                    bottom: -20 * index,
-                    left: -20 * index,
-                    right: -20 * index,
-                    child: Container(
-                      color: Colors.black.withOpacity(.5),
-                    ),
-                  );
-                })
-              ],
-            ),
-            const SizedBox(height: 20),
-            InkWell(
-              onTap: () {
-                onTapSwich();
-              },
-              borderRadius: BorderRadius.circular(radius),
-              hoverDuration: const Duration(seconds: 1),
-              hoverColor: Colors.amber,
-              child: AnimatedSwitch(
-                animation: animation,
-                key: UniqueKey(),
-                width: widthSwich,
-                height: heightSwich,
-                radius: radius,
-                spacing: paddingSwich,
-                tweenSunTween: _tweenSunTween,
-                tweenClouds: _tweenClouds,
-                tweenStars: _tweenStars,
-                tweenMoon: _tweenMoon,
-                tweenSwitchColor: _tweenSwitchColor,
-              ),
-            ),
-          ],
-        ),
+    return InkWell(
+      onTap: () {
+        onTapSwich();
+      },
+      borderRadius: BorderRadius.circular(radius),
+      hoverDuration: const Duration(seconds: 1),
+      hoverColor: Colors.amber,
+      child: AnimatedSwitch(
+        animation: animation,
+        key: UniqueKey(),
+        width: widthSwich,
+        height: heightSwich,
+        radius: radius,
+        spacing: paddingSwich,
+        waveCount: waveCount,
+        waveSpacing: waveSpacing,
+        tweenSunTween: _tweenSunTween,
+        tweenClouds: _tweenClouds,
+        tweenStars: _tweenStars,
+        tweenMoon: _tweenMoon,
+        tweenSwitchColor: _tweenSwitchColor,
       ),
     );
   }
@@ -209,6 +193,8 @@ class AnimatedSwitch extends AnimatedWidget {
   final double width;
   final double radius;
   final double spacing;
+  final int waveCount;
+  final double waveSpacing;
   final Tween<Alignment> tweenSunTween;
   final Tween<double> tweenClouds;
   final Tween<double> tweenStars;
@@ -222,6 +208,8 @@ class AnimatedSwitch extends AnimatedWidget {
     required this.width,
     required this.radius,
     required this.spacing,
+    required this.waveCount,
+    required this.waveSpacing,
     required this.tweenSunTween,
     required this.tweenClouds,
     required this.tweenStars,
@@ -286,13 +274,13 @@ class AnimatedSwitch extends AnimatedWidget {
                   alignment: Alignment.bottomCenter,
                   children: [
                     Image.asset(
-                      "assets/images/img-clouds-backs.png",
+                      ImageAsset.cloudBack,
                       fit: BoxFit.fill,
                       width: width,
                       height: height,
                     ),
                     Image.asset(
-                      "assets/images/img-clouds.png",
+                      ImageAsset.cloudFront,
                       fit: BoxFit.fill,
                       width: width,
                       height: height,
@@ -308,7 +296,7 @@ class AnimatedSwitch extends AnimatedWidget {
                 width: height + spacing,
                 height: height - spacing,
                 child: Image.asset(
-                  "assets/images/img-stars.png",
+                  ImageAsset.starts,
                   fit: BoxFit.fill,
                 ),
               ),
@@ -322,6 +310,8 @@ class AnimatedSwitch extends AnimatedWidget {
                   size: dotSize,
                   animation: animation,
                   moonTween: tweenMoon,
+                  waveCount: waveCount,
+                  waveSpacing: waveSpacing,
                 ),
               ),
             ),
