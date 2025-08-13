@@ -12,29 +12,48 @@ class _SwichAnimationWidgetState extends State<SwichAnimationWidget>
   late Animation<double> animation;
   late AnimationController controller;
   var isOpenBlack = ValueNotifier<bool>(false);
-  var widthSwich = 350;
   var statusAnimation = ValueNotifier<AnimationStatus?>(null);
+  double widthSwich = 350;
+  double heightSwich = 145;
+  late Tween<double> _tweenSunTween;
+  late Tween<double> _tweenClouds;
+  late Tween<double> _tweenMoon;
+  final _tweenStars = Tween<double>(begin: -145, end: 30);
+  double paddingSwich = 16;
+  static const double k = 0.05;
   @override
   void initState() {
     super.initState();
     controller = AnimationController(
-        duration: const Duration(milliseconds: 2000), vsync: this);
-
-    // animation = CurvedAnimation(parent: controller, curve: Curves.elasticIn)
-    //   ..addStatusListener((status) {
-    //     statusAnimation.value = status;
-    //   });
+        duration: const Duration(milliseconds: 3000), vsync: this);
 
     animation = TweenSequence([
+      // TweenSequenceItem(
+      //   tween: Tween(begin: 0.0, end: 1.05)
+      //       .chain(CurveTween(curve: Curves.easeOut)),
+      //   weight: 20,
+      // ),
+      // TweenSequenceItem(
+      //   tween: Tween(begin: 1.05, end: 1.0)
+      //       .chain(CurveTween(curve: Curves.easeOut)),
+      //   weight: 6,
+      // ),
       TweenSequenceItem(
-        tween: Tween(begin: 0.0, end: 1.05)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween:
+            Tween(begin: 0.0, end: -k).chain(CurveTween(curve: Curves.linear)),
+        weight: 9,
+      ),
+      // -k → 1 + k (đi hết hành trình, vượt qua đầu 1)
+      TweenSequenceItem(
+        tween: Tween(begin: -k, end: 1.0 + k)
+            .chain(CurveTween(curve: Curves.linear)),
         weight: 20,
       ),
+      // 1 + k → 1.0 (trở về vị trí cuối)
       TweenSequenceItem(
-        tween: Tween(begin: 1.05, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut)),
-        weight: 6,
+        tween: Tween(begin: 1.0 + k, end: 1.0)
+            .chain(CurveTween(curve: Curves.linear)),
+        weight: 9,
       ),
     ]).animate(controller)
       ..addStatusListener(
@@ -42,6 +61,14 @@ class _SwichAnimationWidgetState extends State<SwichAnimationWidget>
           statusAnimation.value = status;
         },
       );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _tweenSunTween = Tween<double>(begin: -40, end: 164);
+    _tweenClouds = Tween<double>(begin: 0, end: -heightSwich);
+    _tweenMoon = Tween<double>(begin: -(widthSwich / 2), end: 0);
   }
 
   void onTapSwich() {
@@ -64,15 +91,25 @@ class _SwichAnimationWidgetState extends State<SwichAnimationWidget>
         child: ValueListenableBuilder(
             valueListenable: isOpenBlack,
             builder: (context, value, _) {
-              return GestureDetector(
+              return InkWell(
                 onTap: () {
                   onTapSwich();
                 },
-                behavior: HitTestBehavior.opaque,
+                onHover: (value) {
+                  print("here aaaaaaa:$value");
+                },
+                hoverDuration: Duration(seconds: 1),
+                hoverColor: Colors.amber,
                 child: AnimatedLogo(
                   animation: animation,
                   status: statusAnimation.value,
                   key: UniqueKey(),
+                  width: widthSwich,
+                  height: heightSwich,
+                  tweenSunTween: _tweenSunTween,
+                  tweenClouds: _tweenClouds,
+                  tweenStars: _tweenStars,
+                  tweenMoon: _tweenMoon,
                 ),
               );
             }),
@@ -83,123 +120,138 @@ class _SwichAnimationWidgetState extends State<SwichAnimationWidget>
 
 class AnimatedLogo extends AnimatedWidget {
   final AnimationStatus? status;
+  final double height;
+  final double width;
+  final Tween<double>? tweenSunTween;
+  final Tween<double>? tweenClouds;
+  final Tween<double>? tweenStars;
+  final Tween<double>? tweenMoon;
   const AnimatedLogo({
     super.key,
     required Animation<double> animation,
     this.status,
+    required this.height,
+    required this.width,
+    this.tweenSunTween,
+    this.tweenClouds,
+    this.tweenStars,
+    this.tweenMoon,
   }) : super(listenable: animation);
 
-  static final _tweenSunTween = Tween<double>(begin: -40, end: 164);
-  static final _tweenClouds = Tween<double>(begin: 0, end: -145);
-  static final _tweenStars = Tween<double>(begin: -145, end: 30);
-  static final _tweenMoon = Tween<double>(begin: -132, end: 0);
   static final _tweenOpacityBackground = Tween<double>(begin: 0, end: 1);
-  static final _tweenItem =
-      Tween<Alignment>(begin: Alignment.centerLeft, end: Alignment.centerRight);
   @override
   Widget build(BuildContext context) {
     final animation = listenable as Animation<double>;
     return Container(
-      width: 350,
-      height: 145,
+      width: width,
+      height: height,
       decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(200),
+        boxShadow: [
+          BoxShadow(
+            offset: const Offset(1, 1.5),
+            blurRadius: 90,
+            spreadRadius: 0,
+            color: const Color(0xff000000).withOpacity(0.85),
+            blurStyle: BlurStyle.inner,
+          ),
+          BoxShadow(
+            offset: const Offset(-1, -1),
+            blurRadius: 12,
+            spreadRadius: 0,
+            color: const Color(0xff000000).withOpacity(0.4),
+            blurStyle: BlurStyle.inner,
+          ),
+          BoxShadow(
+            offset: const Offset(2.2, 6),
+            blurRadius: 2,
+            spreadRadius: 0,
+            color: const Color(0xffFFFFFF).withOpacity(0.72),
+            blurStyle: BlurStyle.normal,
+          ),
+          BoxShadow(
+            offset: const Offset(-0.5, -5),
+            blurRadius: 2,
+            spreadRadius: 0,
+            color: const Color(0xff000000).withOpacity(0.25),
+            blurStyle: BlurStyle.normal,
+          ),
+        ],
+      ),
+      child: Container(
+        decoration: BoxDecoration(
           color: const Color(0xff2384BA),
           borderRadius: BorderRadius.circular(200),
-          boxShadow: [
-            const BoxShadow(
-              color: Colors.white,
-              offset: Offset(-4, -4),
-              blurRadius: 6,
-              blurStyle: BlurStyle.inner,
-            ),
-            // Bóng ngoài (xám phía dưới bên phải)
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              offset: const Offset(4, 4),
-              blurRadius: 6,
-              blurStyle: BlurStyle.inner,
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              offset: const Offset(0, -3),
-              blurRadius: 6,
-              blurStyle: BlurStyle.normal,
-            ),
-            // Inset shadow (sáng phía dưới)
-            BoxShadow(
-              color: Colors.white.withOpacity(0.8),
-              offset: const Offset(0, 3),
-              blurRadius: 6,
-              blurStyle: BlurStyle.normal,
-            ),
-          ]),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(200),
-        child: Stack(
-          alignment: Alignment.center,
-          fit: StackFit.passthrough,
-          clipBehavior: Clip.none,
-          children: [
-            Opacity(
-              opacity:
-                  _tweenOpacityBackground.evaluate(animation).clamp(0.0, 1),
-              child: Container(
-                width: 350,
-                height: 145,
-                decoration: BoxDecoration(
-                  color: const Color(0xff2384BA),
-                  borderRadius: BorderRadius.circular(200),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(200),
-                  child: Stack(
-                    children: [
-                      Container(
-                        width: 350,
-                        height: 145,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(200),
-                            color: const Color(0xff2F2F2F)),
-                      )
-                    ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(200),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Opacity(
+                opacity:
+                    _tweenOpacityBackground.evaluate(animation).clamp(0.0, 1),
+                child: Container(
+                  width: width,
+                  height: height,
+                  decoration: BoxDecoration(
+                    color: const Color(0xff2384BA),
+                    borderRadius: BorderRadius.circular(200),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(200),
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: width,
+                          height: height,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(200),
+                              color: const Color(0xff2F2F2F)),
+                        )
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            Positioned(
-              bottom: _tweenClouds.evaluate(animation),
-              child: SizedBox(
-                width: 350,
-                height: 145,
-                child: Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    Image.asset(
-                      "assets/images/img-clouds-backs.png",
-                      fit: BoxFit.cover,
-                    ),
-                    Image.asset(
-                      "assets/images/img-clouds.png",
-                      fit: BoxFit.cover,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              left: 50,
-              top: _tweenStars.evaluate(animation),
-              child: SizedBox(
-                width: 142,
-                height: 93,
-                child: Image.asset("assets/images/img-stars.png"),
-              ),
-            ),
-            Stack(
-              alignment: Alignment.center,
-              children: [
+              if (tweenClouds != null)
                 Positioned(
-                  left: _tweenSunTween.evaluate(animation),
+                  bottom: tweenClouds?.evaluate(animation),
+                  child: SizedBox(
+                    width: width,
+                    height: height,
+                    child: Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [
+                        Image.asset(
+                          "assets/images/img-clouds-backs.png",
+                          fit: BoxFit.cover,
+                        ),
+                        Image.asset(
+                          "assets/images/img-clouds.png",
+                          fit: BoxFit.cover,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              if (tweenStars != null)
+                Positioned(
+                  left: 40,
+                  top: tweenStars?.evaluate(animation),
+                  child: SizedBox(
+                    width: 142,
+                    height: 93,
+                    child: Image.asset("assets/images/img-stars.png"),
+                  ),
+                ),
+              Positioned(
+                left: tweenSunTween?.evaluate(animation),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      shape: BoxShape.circle),
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -211,48 +263,38 @@ class AnimatedLogo extends AnimatedWidget {
                           color: Colors.white.withOpacity(0.1),
                           shape: BoxShape.circle),
                       child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
-                            shape: BoxShape.circle),
-                        child: Container(
-                          height: 132,
-                          width: 132,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            image: DecorationImage(
-                              image: AssetImage("assets/images/img-sun.png"),
-                              fit: BoxFit.fill,
-                            ),
+                        height: height - 20,
+                        width: height - 20,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            image: AssetImage("assets/images/img-sun.png"),
+                            fit: BoxFit.fill,
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(200),
-                            child: Stack(
-                              children: [
-                                Positioned(
-                                  right: _tweenMoon.evaluate(animation),
-                                  child: Container(
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Image.asset(
-                                      "assets/images/img-moon.png",
-                                      height: 132,
-                                      width: 132,
-                                    ),
-                                  ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(200),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Positioned(
+                                right: tweenMoon?.evaluate(animation),
+                                child: Image.asset(
+                                  "assets/images/img-moon.png",
+                                  height: height - 20,
+                                  width: height - 20,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
