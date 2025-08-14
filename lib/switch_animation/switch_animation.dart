@@ -17,7 +17,8 @@ class SwitchAnimationWidget extends StatefulWidget {
     this.waveCount,
     this.waveSpacing,
     super.key,
-  })  : assert(height == null || height > 20, 'Height cannot be less than 20'),
+  })  : assert(height == null || spacing == null || height > spacing,
+            'Height cannot be less than spacing'),
         assert(width == null || height == null || width > height,
             "Width can not be less than height");
 
