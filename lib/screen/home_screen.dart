@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../switch_animation/swich_animation.dart';
+import '../switch_animation/switch_animation.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -11,13 +11,16 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: const Color(0xffdddddd),
       body: Container(
         alignment: Alignment.center,
-        child: SwichAnimationWidget(
+        child: SwitchAnimationWidget(
           defaultValue: false,
           onChanged: (value) {},
-          width: 300,
+          width: 290,
           height: 100,
           spacing: 10,
-          duration: 3000,
+          duration: 2000,
+          waveCount: 3,
+          waveSpacing: 20,
+          radius: 200,
         ),
       ),
     );

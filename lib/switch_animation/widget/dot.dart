@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:testconcung/switch_animation/constanst/image_asset.dart';
 
-class DotWidget extends StatelessWidget {
-  const DotWidget({
+class SwitchDotWidget extends StatelessWidget {
+  const SwitchDotWidget({
     required this.size,
     required this.animation,
     required this.moonTween,
